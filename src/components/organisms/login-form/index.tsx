@@ -1,29 +1,28 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, VStack } from 'native-base';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import InputField from '../../molecules/input-field';
 import PasswordField from '../../molecules/password-field';
-
-type Credentials = {
-    email: string;
-    password: string;
-}
+import { LoginCredentials, loginCredentialsSchema } from './login-credentials.model';
 
 type LoginFormProps = {
-    onLogin: (credentials: Credentials) => Promise<void>;
+    onLogin: (credentials: LoginCredentials) => Promise<void>;
 }
 
 const LoginForm = ({
     onLogin
 }: LoginFormProps) => {
-    const { control, formState: { errors }, handleSubmit } = useForm<Credentials>();
+    const { control, formState: { errors }, handleSubmit } = useForm<LoginCredentials>({
+        resolver: zodResolver(loginCredentialsSchema)
+    });
     const [isLoggingIn, setIsLoggingIn] = useState(false);
-    const handleLoginClick = async (data: Credentials) => {
+    const handleLoginClick = async (data: LoginCredentials) => {
         setIsLoggingIn(true);
         await onLogin(data);
         setIsLoggingIn(false);
     }
-    
+
     return (
         <VStack width={250}>
             <InputField
@@ -32,33 +31,13 @@ const LoginForm = ({
                 control={control}
                 formErrors={errors}
                 containerStyle={{ m: 1 }}
-                rules={{
-                    required: {
-                        value: true,
-                        message: 'Deve preencher o e-mail'
-                    },
-                    max: {
-                        message: 'Máximo de 30 caracteres',
-                        value: 30
-                    }
-                }}
             />
             <PasswordField
                 label="Senha"
                 control={control}
                 formErrors={errors}
-                name="password"                
+                name="password"
                 containerStyle={{ m: 1 }}
-                rules={{
-                    required: {
-                        value: true,
-                        message: 'Deve preencher a senha'
-                    },
-                    min: {
-                        value: 6,
-                        message: 'Mínimo de 6 caracteres'
-                    }
-                }}
             />
 
             <Button m={1} isLoading={isLoggingIn} onPress={handleSubmit(handleLoginClick)}>Acessar</Button>
